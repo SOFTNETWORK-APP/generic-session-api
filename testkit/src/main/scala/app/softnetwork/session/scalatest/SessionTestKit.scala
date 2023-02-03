@@ -33,9 +33,13 @@ trait SessionTestKit
     request.withHeaders(request.headers ++ cookies: _*)
   }
 
-  def createSession(id: String, profile: Option[String] = None): Unit = {
+  def createSession(
+    id: String,
+    profile: Option[String] = None,
+    admin: Option[Boolean] = None
+  ): Unit = {
     invalidateSession()
-    Post(s"/$RootPath/session", CreateSession(id, profile)) ~> routes ~> check {
+    Post(s"/$RootPath/session", CreateSession(id, profile, admin)) ~> routes ~> check {
       status shouldEqual StatusCodes.OK
       cookies = extractCookies(headers)
     }
@@ -62,7 +66,7 @@ trait SessionServiceRoutes extends ApiRoutes {
   override def apiRoutes(system: ActorSystem[_]): Route = SessionServiceRoute(system).route
 }
 
-case class CreateSession(id: String, profile: Option[String] = None)
+case class CreateSession(id: String, profile: Option[String] = None, admin: Option[Boolean] = None)
 
 trait SessionServiceRoute
     extends SessionService
@@ -89,6 +93,10 @@ trait SessionServiceRoute
             val s = Session(session.id)
             session.profile match {
               case Some(p) => s += (profileKey, p)
+              case _       =>
+            }
+            session.admin match {
+              case Some(a) => s += (adminKey, s"$a")
               case _       =>
             }
             // create a new session
