@@ -2,10 +2,9 @@ package app.softnetwork.session.launch
 
 import akka.actor.typed.ActorSystem
 import app.softnetwork.persistence.launch.{PersistenceGuardian, PersistentEntity}
-import app.softnetwork.persistence.schema.SchemaProvider
 import app.softnetwork.session.persistence.typed.SessionRefreshTokenBehavior
 
-trait SessionGuardian extends PersistenceGuardian { _: SchemaProvider =>
+trait SessionGuardian extends PersistenceGuardian {
 
   import app.softnetwork.persistence.launch.PersistenceGuardian._
 
