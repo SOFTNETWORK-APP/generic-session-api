@@ -1,8 +1,11 @@
 package app.softnetwork.session.scalatest
 
 import org.scalatest.wordspec.AnyWordSpecLike
+import org.slf4j.{Logger, LoggerFactory}
 
 class SessionTestKitSpec extends AnyWordSpecLike with SessionTestKit {
+
+  override lazy val log: Logger = LoggerFactory getLogger getClass.getName
 
   val id: String = "id"
 

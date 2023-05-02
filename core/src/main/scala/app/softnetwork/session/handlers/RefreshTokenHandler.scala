@@ -8,6 +8,7 @@ import app.softnetwork.persistence.typed.CommandTypeKey
 import org.softnetwork.session.model.Session
 import app.softnetwork.session.message._
 import app.softnetwork.session.persistence.typed.SessionRefreshTokenBehavior
+import org.slf4j.{Logger, LoggerFactory}
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration.Duration
@@ -37,7 +38,7 @@ trait RefreshTokenDao[T] extends RefreshTokenStorage[T] { _: RefreshTokenHandler
   implicit lazy val ec: ExecutionContext = system.executionContext
 
   override def lookup(selector: String): Future[Option[RefreshTokenLookupResult[T]]] = {
-    logger.info(s"Looking up token for selector: $selector")
+    log.info(s"Looking up token for selector: $selector")
     this !? LookupRefreshToken(selector) map {
       case r: RefreshTokenResult => r.asInstanceOf[LookupRefreshTokenResult[T]].data
       case other                 => throw new Throwable(other.toString)
@@ -45,7 +46,7 @@ trait RefreshTokenDao[T] extends RefreshTokenStorage[T] { _: RefreshTokenHandler
   }
 
   override def store(data: RefreshTokenData[T]): Future[Unit] = {
-    logger.info(
+    log.info(
       s"Storing token for " +
       s"selector: ${data.selector}, " +
       s"user: ${data.forSession}, " +
@@ -59,7 +60,7 @@ trait RefreshTokenDao[T] extends RefreshTokenStorage[T] { _: RefreshTokenHandler
   }
 
   override def remove(selector: String): Future[Unit] = {
-    logger.info(s"Removing token for selector: $selector")
+    log.info(s"Removing token for selector: $selector")
     this !? RemoveRefreshToken(selector) map {
       case _: RefreshTokenRemoved => ()
       case other                  => throw new Throwable(other.toString)
@@ -67,7 +68,7 @@ trait RefreshTokenDao[T] extends RefreshTokenStorage[T] { _: RefreshTokenHandler
   }
 
   override def schedule[S](after: Duration)(op: => Future[S]): Unit = {
-    logger.info("Running scheduled operation immediately")
+    log.info("Running scheduled operation immediately")
     op
     Future.successful(())
   }
@@ -79,6 +80,8 @@ object SessionRefreshTokenDao {
   def apply(asystem: ActorSystem[_]): SessionRefreshTokenDao = {
     new SessionRefreshTokenDao() {
       override implicit val system: ActorSystem[_] = asystem
+
+      override lazy val log: Logger = LoggerFactory getLogger getClass.getName
     }
   }
 }
